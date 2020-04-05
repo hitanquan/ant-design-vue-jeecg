@@ -1,11 +1,10 @@
-<!--
 <template>
   <a-card :bordered="false">
     
-    &lt;!&ndash; 操作按钮区域 &ndash;&gt;
+    <!-- 操作按钮区域 -->
     <div class="table-operator">
       <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
-      <a-button type="primary" icon="download" @click="handleExportXls('车型管理数据表')">导出</a-button>
+      <a-button type="primary" icon="download" @click="handleExportXls('车型管理功能数据表')">导出</a-button>
       <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
         <a-button type="primary" icon="import">导入</a-button>
       </a-upload>
@@ -17,34 +16,37 @@
       </a-dropdown>
     </div>
 
+    <!-- 查询区域 -->
     <div class="table-page-search-wrapper">
-      <a-form layout="inline">
+      <a-form layout="inline" @keyup.enter.native="searchQuery">
         <a-row :gutter="48">
           <a-col :md="8" :sm="24">
-            <a-form-item label="请选择车型">
-              <a-select placeholder="请选择" default-value="0">
-                <a-select-option value="0">轿车</a-select-option>
-                <a-select-option value="1">新能源</a-select-option>
-                <a-select-option value="2">SUV/MPV</a-select-option>
+            <a-form-item label="根据车型查询">
+              <a-select placeholder="请选择车型" default-value="0" v-model="queryParam.type">
+                <a-select-option value="轿车">轿车</a-select-option>
+                <a-select-option value="新能源">新能源</a-select-option>
+                <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
+
           <a-col :md="8" :sm="24">
-            <a-form-item label="">
-              <a-input placeholder="请输入车型名称"/>
+            <a-form-item label="根据名称查询">
+              <a-input placeholder="请输入车名称" v-model="queryParam.name"/>
             </a-form-item>
           </a-col>
+
           <a-col :md="8" :sm="24">
             <span class="table-page-search-submitButtons">
-              <a-button type="primary">查询</a-button>
-              <a-button style="margin-left: 8px">重置</a-button>
+              <a-button type="primary" @click="searchQuery" icon="search">查询</a-button>
+              <a-button style="margin-left: 8px" @click="searchReset" icon="reload">重置</a-button>
             </span>
           </a-col>
         </a-row>
       </a-form>
     </div>
 
-    &lt;!&ndash; table区域-begin &ndash;&gt;
+    <!-- table区域-begin -->
     <div>
       <div class="ant-alert ant-alert-info" style="margin-bottom: 16px;">
         <i class="anticon anticon-info-circle ant-alert-icon"></i> 已选择 <a style="font-weight: 600">{{ selectedRowKeys.length }}</a>项
@@ -56,7 +58,6 @@
         size="middle"
         rowKey="id"
         :columns="columns"
-        :data="loadData"
         :dataSource="dataSource"
         :pagination="ipagination"
         :loading="loading"
@@ -65,51 +66,43 @@
         @expand="handleExpand"
         v-bind="tableProps">
 
-        &lt;!&ndash;收缩、展开效果及数据显示&ndash;&gt;
         <div
           slot="expandedRowRender"
           slot-scope="record"
           style="margin: 0">
-          <a-row
-            :gutter="24"
-            :style="{ marginBottom: '12px' }">
-            <a-col >
-              <a-col : span="4">
-                <span>别名：{{car.alias}}</span><br>
-                <span>logo图：{{car.logoImg}}</span><br>
-                <span>指导价：{{car.alias}}</span><br>
-                <span>类型图：{{car.typeImg}}</span>
+          <a-row>
+            <a-row>
+              <a-col :span="12">
+                <span>ID：{{record.id}}</span><br>
+                <!--尝试将图片显示，但是行不通-->
+                <!--<img-drag-sort >logo图：{{record.logoImg}}</img-drag-sort>-->
+                <!--<ImgTurnPage >logo图：{{record.logoImg}}</ImgTurnPage>-->
+               <!-- <template slot="imgSlot" slot-scope="{{record.logoImg}}">
+                  <span v-if="!text" style="font-size: 12px;font-style: italic;">无此图片</span>
+                  <img v-else :src="getImgView(text)" height="25px" alt="图片不存在" style="max-width:80px;font-size: 12px;font-style: italic;"/>
+                </template>-->
+                <!--<span>logo图：<img src={{record.logoImg}} width="100px" height="100px"></span><br>-->
+                <!--以下是从数据库拿到的图片路径，还没找到方式显示它们-->
+               <!-- <span>logo图路径:{{record.logoImg}}</span><br>
+                <span>type图路径:{{record.typeImg}}</span><br>-->
+                <!--先静态写死路径代替一下-->
+                <span>logo图：<img src="http://localhost:8080/jeecg-boot/upFiles/logo_levin2019_1585927616696.png" width="100px" height="100px"></span><br>
+                <span>创建人：{{record.createBy}}</span><br>
+                <span>更新人：{{record.updateBy}}</span><br>
               </a-col>
-
-              <span>别名：{{car.alias}}</span><br>
-              <span>logo图：{{car.logoImg}}</span><br>
-              <span>指导价：{{car.alias}}</span><br>
-              <span>类型图：{{car.typeImg}}</span>
-            </a-col>
-
-            &lt;!&ndash; <a-col>
-               <span>指导价：{{record.alias}}</span><br>
-               <span>类型图：{{record.typeImg}}</span>
-             </a-col>&ndash;&gt;
+              <a-col :span="12">
+                <span>别名：{{record.alias}}</span><br>
+                <span>类型图：<img src="http://localhost:8080/jeecg-boot/upFiles/HEV-1_1585927701184.png" width="100px" height="100px"></span><br>
+                <span>创建时间：{{record.createTime}}</span><br>
+                <span>更新时间：{{record.updateTime}}</span><br>
+              </a-col>
+            </a-row>
           </a-row>
-
-          &lt;!&ndash;<a-row align="right"
-            :gutter="24"
-            :style="{ marginBottom: '12px' }">
-            <a-col>
-              <span>别名：{{record.alias}}</span>
-              <span>识别码：{{record.identificationCode}}</span>
-            </a-col>
-
-            <a-col>
-              <span>别名：{{record.alias}}</span>
-              <span>识别码：{{record.identificationCode}}</span>
-            </a-col>
-          </a-row>&ndash;&gt;
         </div>
         
         <template slot="imgSlot" slot-scope="text">
           <span v-if="!text" style="font-size: 12px;font-style: italic;">无此图片</span>
+
           <img v-else :src="getImgView(text)" height="25px" alt="图片不存在" style="max-width:80px;font-size: 12px;font-style: italic;"/>
         </template>
         <template slot="fileSlot" slot-scope="text">
@@ -142,8 +135,6 @@
         </span>
 
       </a-table>
-
-
     </div>
 
     <car-modal ref="modalForm" @ok="modalFormOk"></car-modal>
@@ -155,22 +146,23 @@
   import { getAction } from '@/api/manage'
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import CarModal from './modules/CarModal'
-  import ARow from "ant-design-vue/es/grid/Row";
-  import ACol from "ant-design-vue/es/grid/Col";
-  import {filterMultiDictText} from '@/components/dict/JDictSelectUtil'
+  import ImagPreview from "@/views/jeecg/ImagPreview";
+  import ImgDragSort from "@/views/jeecg/ImgDragSort";
+  import ImgTurnPage from "@/views/jeecg/ImgTurnPage";
   
   export default {
     name: "CarList",
     mixins:[JeecgListMixin],
     components: {
-      ACol,
-      ARow,
+      ImgTurnPage,
+      ImgDragSort,
+      ImagPreview,
       STable,
       CarModal
     },
     data () {
       return {
-        description: '车型管理数据表管理页面',
+        description: '车型管理功能数据表管理页面',
         // 表头
         columns: [
           {
@@ -179,7 +171,7 @@
             dataIndex: 'serialNumber'
           },
           {
-            title:'名称',
+            title:'车名',
             align:"left",
             dataIndex: 'name'
           },
@@ -189,7 +181,7 @@
             dataIndex: 'alias'
           },*/
           {
-            title:'类型',
+            title:'车类型',
             align:"left",
             dataIndex: 'type'
           },
@@ -198,31 +190,53 @@
             align:"left",
             dataIndex: 'identificationCode'
           },*/
-         /* {
+          {
             title:'指导价',
             align:"left",
             dataIndex: 'suggestPrice'
-          },*/
+          },
           /*{
             title:'logo图',
             align:"left",
-            dataIndex: 'logoImg'
-          },*/
-         /* {
+            dataIndex: 'logoImg',
+            scopedSlots: {customRender: 'imgSlot'}
+          },
+          {
             title:'类型图',
             align:"left",
-            dataIndex: 'typeImg'
+            dataIndex: 'typeImg',
+            scopedSlots: {customRender: 'imgSlot'}
           },*/
-         /* {
+          {
             title:'链接',
             align:"left",
             dataIndex: 'link'
-          },*/
+          },
           {
             title:'是否新品',
             align:"left",
             dataIndex: 'isNew'
           },
+          /*{
+            title:'创建人',
+            align:"left",
+            dataIndex: 'createBy'
+          },
+          {
+            title:'创建日期',
+            align:"left",
+            dataIndex: 'createTime'
+          },
+          {
+            title:'更新人',
+            align:"left",
+            dataIndex: 'updateBy'
+          },
+          {
+            title:'更新日期',
+            align:"left",
+            dataIndex: 'updateTime'
+          },*/
           {
             title: '操作',
             dataIndex: 'action',
@@ -230,21 +244,14 @@
             scopedSlots: { customRender: 'action' },
           }
         ],
-        // 加载数据方法 必须为 Promise 对象
-        /*loadData: parameter => {
-          return this.$http.get('/api/car', {
-            params: Object.assign(parameter, this.queryParam)
-          }).then(res => {
-            return res.result
-          })
-        },*/
+        // 调用后台对应接口
         url: {
-          list: "/car/rootList",
-          childList: "/car/childList",
-          delete: "/car/delete",
-          deleteBatch: "/car/deleteBatch",
-          exportXlsUrl: "/car/exportXls",
-          importExcelUrl: "/car/importExcel",
+          list: "/carManage/car/rootList",
+          childList: "/carManage/car/childList",
+          delete: "/carManage/car/delete",
+          deleteBatch: "/carManage/car/deleteBatch",
+          exportXlsUrl: "/carManage/car/exportXls",
+          importExcelUrl: "carManage/car/importExcel",
         },
         expandedRowKeys:[],
         hasChildrenField:"hasChild",
@@ -409,4 +416,3 @@
 <style scoped>
   @import '~@assets/less/common.less';
 </style>
--->

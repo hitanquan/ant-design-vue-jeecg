@@ -1,7 +1,7 @@
 # ant-design-vue-jeecg
 
 #### 介绍
-jeecg-boot-study的前台项目，前后端分离。
+jeecg-boot-study的前台项目，前后端分离。在该项目的基础上，我完成的“车型管理”模块在src/views/modules/car目录下。
 
 #### 软件架构
 软件架构说明

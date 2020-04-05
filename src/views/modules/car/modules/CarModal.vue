@@ -10,18 +10,19 @@
     cancelText="关闭">
     <a-spin :spinning="confirmLoading">
       <a-form :form="form">
-
+        <!--新增数据页表单-->
         <a-form-item label="序号" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-input-number v-decorator="[ 'serialNumber', validatorRules.serialNumber]" placeholder="请输入序号" style="width: 100%"/>
         </a-form-item>
-        <a-form-item label="名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入名称"></a-input>
+        <a-form-item label="车名" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入车名"></a-input>
         </a-form-item>
         <a-form-item label="别名" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-input v-decorator="[ 'alias', validatorRules.alias]" placeholder="请输入别名"></a-input>
         </a-form-item>
-        <a-form-item label="类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'type', validatorRules.type]" placeholder="请输入类型"></a-input>
+        // 车类型应该改为下拉选择框的形式
+        <a-form-item label="车类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input v-decorator="[ 'type', validatorRules.type]" placeholder="请输入车类型"></a-input>
         </a-form-item>
         <a-form-item label="识别码" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-input v-decorator="[ 'identificationCode', validatorRules.identificationCode]" placeholder="请输入识别码"></a-input>
@@ -30,29 +31,40 @@
           <a-input-number v-decorator="[ 'suggestPrice', validatorRules.suggestPrice]" placeholder="请输入指导价" style="width: 100%"/>
         </a-form-item>
         <a-form-item label="logo图" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'logoImg', validatorRules.logoImg]" placeholder="请输入logo图"></a-input>
+          <j-upload v-decorator="['logoImg', validatorRules.logoImg]" :trigger-change="true"></j-upload>
         </a-form-item>
         <a-form-item label="类型图" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'typeImg', validatorRules.typeImg]" placeholder="请输入类型图"></a-input>
+          <j-upload v-decorator="['typeImg', validatorRules.typeImg]" :trigger-change="true"></j-upload>
         </a-form-item>
         <a-form-item label="链接" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-input v-decorator="[ 'link', validatorRules.link]" placeholder="请输入链接"></a-input>
         </a-form-item>
         <a-form-item label="是否新品" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input-number v-decorator="[ 'isNew', validatorRules.isNew]" placeholder="请输入是否新品" style="width: 100%"/>
+          <a-input-number v-decorator="[ 'isNew', validatorRules.isNew]" placeholder="请输入是否新品，1新品，0非新品" style="width: 100%"/>
+        </a-form-item>
+        <a-form-item label="创建人" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input v-decorator="[ 'createBy', validatorRules.createBy]" placeholder="请输入创建人"></a-input>
+        </a-form-item>
+        <a-form-item label="创建日期" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <j-date placeholder="请选择创建日期" v-decorator="[ 'createTime', validatorRules.createTime]" :trigger-change="true" :show-time="true" date-format="YYYY-MM-DD HH:mm:ss" style="width: 100%"/>
+        </a-form-item>
+        <a-form-item label="更新人" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input v-decorator="[ 'updateBy', validatorRules.updateBy]" placeholder="请输入更新人"></a-input>
+        </a-form-item>
+        <a-form-item label="更新日期" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <j-date placeholder="请选择更新日期" v-decorator="[ 'updateTime', validatorRules.updateTime]" :trigger-change="true" :show-time="true" date-format="YYYY-MM-DD HH:mm:ss" style="width: 100%"/>
         </a-form-item>
         <a-form-item label="父级节点" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <j-tree-select
             ref="treeSelect"
             placeholder="请选择父级节点"
             v-decorator="['pid', validatorRules.pid]"
-            dict="test_car2,tree,id"
+            dict="test_demo_car,tree,id"
             pidField="pid"
             pidValue="0"
             hasChildField="has_child">
           </j-tree-select>
         </a-form-item>
-        
       </a-form>
     </a-spin>
   </a-modal>
@@ -62,12 +74,16 @@
 
   import { httpAction } from '@/api/manage'
   import pick from 'lodash.pick'
-  import { validateDuplicateValue } from '@/utils/util'
+  import { validate} from '@/utils/util'
+  import JDate from '@/components/jeecg/JDate'  
+  import JUpload from '@/components/jeecg/JUpload'
   import JTreeSelect from '@/components/jeecg/JTreeSelect'
   
   export default {
     name: "CarModal",
     components: { 
+      JDate,
+      JUpload,
       JTreeSelect
     },
     data () {
@@ -75,7 +91,7 @@
         form: this.$form.createForm(this),
         title:"操作",
         width:800,
-        visible: false,
+        visible:false,
         model: {},
         labelCol: {
           xs: { span: 24 },
@@ -87,33 +103,51 @@
         },
 
         confirmLoading: false,
+        // 表单数据检验
         validatorRules: {
           serialNumber: {rules: [
           ]},
           name: {rules: [
+            {required: true, message: '请输入车名!'},
           ]},
           alias: {rules: [
+            {required: true, message: '请输入别名!'},
           ]},
           type: {rules: [
+            {required: true, message: '请输入车类型!'},
           ]},
           identificationCode: {rules: [
+            {required: true, message: '请输入识别码!'},
+           {pattern:/^.{6,16}$/, message: '请输入6到16位任意字符!'},
           ]},
           suggestPrice: {rules: [
+            {required: true, message: '请输入指导价!'},
+           {pattern:/^-?\d+\.?\d*$/, message: '请输入数字!'},
           ]},
           logoImg: {rules: [
           ]},
           typeImg: {rules: [
           ]},
           link: {rules: [
+            {pattern:/^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/, message: '请输入正确的网址!'},
           ]},
           isNew: {rules: [
+            {pattern:/^-?\d+$/, message: '请输入整数!'},
+          ]},
+          createBy: {rules: [
+          ]},
+          createTime: {rules: [
+          ]},
+          updateBy: {rules: [
+          ]},
+          updateTime: {rules: [
           ]},
           pid: {rules: [
           ]},
         },
         url: {
-          add: "/car/add",
-          edit: "/car/edit",
+          add: "/carManage/car/add",
+          edit: "/carManage/car/edit",
         },
         expandedRowKeys:[],
         pidField:"pid"
@@ -131,7 +165,7 @@
         this.model = Object.assign({}, record);
         this.visible = true;
         this.$nextTick(() => {
-          this.form.setFieldsValue(pick(this.model,'serialNumber','name','alias','type','identificationCode','suggestPrice','logoImg','typeImg','link','isNew','pid'))
+          this.form.setFieldsValue(pick(this.model,'serialNumber','name','alias','type','identificationCode','suggestPrice','logoImg','typeImg','link','isNew','createBy','createTime','updateBy','updateTime','pid'))
         })
       },
       close () {
@@ -176,7 +210,7 @@
         this.close()
       },
       popupCallback(row){
-        this.form.setFieldsValue(pick(row,'serialNumber','name','alias','type','identificationCode','suggestPrice','logoImg','typeImg','link','isNew','pid'))
+        this.form.setFieldsValue(pick(row,'serialNumber','name','alias','type','identificationCode','suggestPrice','logoImg','typeImg','link','isNew','createBy','createTime','updateBy','updateTime','pid'))
       },
       submitSuccess(formData,flag){
         if(!formData.id){
@@ -200,8 +234,6 @@
           }
         }
       }
-      
-      
     }
   }
 </script>
