@@ -1,7 +1,8 @@
 <template>
+  <div>
   <a-upload
     name="file"
-    listType="picture-card"
+    listType="picture"
     :multiple="isMultiple"
     :action="uploadAction"
     :headers="headers"
@@ -13,7 +14,7 @@
     :showUploadList="isMultiple"
     @change="handleChange"
     @preview="handlePreview">
-    <img v-if="!isMultiple && picUrl" :src="getAvatarView()" style="height:104px;max-width:300px"/>
+    <img v-if="!isMultiple && picUrl" :src="getAvatarView()" style="height:80px;max-width:100px"/>
     <div v-else >
       <a-icon :type="uploadLoading ? 'loading' : 'plus'" />
       <div class="ant-upload-text">{{ text }}</div>
@@ -21,7 +22,11 @@
     <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel()">
       <img alt="example" style="width: 100%" :src="previewImage"/>
     </a-modal>
+
   </a-upload>
+
+  <!--<a-button> <a-icon type="upload" /> upload </a-button>-->
+  </div>
 </template>
 
 <script>
@@ -41,7 +46,7 @@
   }
   export default {
     name: 'JImageUpload',
-    data(){
+    data() {
       return {
         uploadAction:window._CONFIG['domianURL']+"/sys/common/upload",
         urlView:window._CONFIG['staticDomainURL'],
@@ -57,7 +62,7 @@
       text:{
         type:String,
         required:false,
-        default:"上传"
+        default:""
       },
       /*这个属性用于控制文件上传的业务路径*/
       bizPath:{
@@ -156,6 +161,7 @@
       getAvatarView(){
         if(this.fileList.length>0){
           let url = this.fileList[0].url
+          console.log("图片路径：",url);
           return getFileAccessHttpUrl(url,this.urlView,"http")
         }
       },
