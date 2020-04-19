@@ -190,7 +190,8 @@
   import {JeecgListMixin} from '@/mixins/JeecgListMixin'
   import SysUserAgentModal from "./modules/SysUserAgentModal";
   import JInput from '@/components/jeecg/JInput'
-  import UserRecycleBinModal from './modules/UserRecycleBinModal'
+  import UserRecycleBinModal from './modules/UserRecycleBinModal';
+  import { colAuthFilter } from "@/utils/authFilter";
 
   export default {
     name: "UserList",
@@ -295,6 +296,13 @@
       }
     },
     methods: {
+      created() {
+        this.disableMixinCreated=true;
+        this.columns = colAuthFilter(this.columns,'test:');
+        this.loadData();
+        this.initDictConfig();
+      },
+
       getAvatarView: function (avatar) {
         return getFileAccessHttpUrl(avatar,this.url.imgerver,"http")
       },

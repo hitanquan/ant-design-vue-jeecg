@@ -1,57 +1,70 @@
 <template>
   <a-card :bordered="false">
-
-    <!-- 操作按钮区域 -->
-    <div class="table-operator">
-      <a-button @click="handleAdd" icon="plus" type="primary">新建</a-button>
-
-      <a-dropdown v-if="selectedRowKeys.length > 0">
-        <a-menu slot="overlay">
-          <a-menu-item @click="batchDel" key="1">
-            <a-icon type="delete"/>
-            删除
-          </a-menu-item>
-        </a-menu>
-        <a-button style="margin-left: 8px">
-          批量操作
-          <a-icon type="down"/>
-        </a-button>
-      </a-dropdown>
-    </div>
-
-    <!-- 查询区域 -->
-    <div class="table-page-search-wrapper">
-      <a-form @keyup.enter.native="searchQuery" layout="inline">
-        <a-row :gutter="48">
-          <a-col :md="8" :sm="24">
-            <a-form-item label="根据车型查询">
-              <a-select :allowClear="true" @change="handleTableChange" placeholder="请选择车型" v-model="queryParam.type">
-                <a-select-option value="轿车">轿车</a-select-option>
-                <a-select-option value="新能源">新能源</a-select-option>
-                <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
-                <a-select-option value="油电混合">油电混合</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-
-          <a-col :md="8" :sm="24">
-            <a-form-item label="根据名称查询">
-              <a-input @change="handleTableChange" placeholder="请输入车名称" v-model="queryParam.name"/>
-            </a-form-item>
-          </a-col>
-
-          <a-col :md="8" :sm="24">
-            <span class="table-page-search-submitButtons">
-              <a-button @click="searchQuery" icon="search" type="primary">查询</a-button>
-              <a-button @click="searchReset" icon="reload" style="margin-left: 8px">重置</a-button>
-            </span>
-          </a-col>
-        </a-row>
-      </a-form>
-    </div>
-
-    <!-- table区域-begin -->
     <div>
+      <!--采用栅格重新布局，使新建按钮、查询和视图切换控件显示在一行-->
+      <a-row>
+        <!--新建和批量删除按钮-->
+        <a-col :span="12">
+          <div class="table-operator">
+            <a-button @click="handleAdd" :disabled="isDisabledAuth('car:disable')" icon="plus" type="primary">新建</a-button>
+
+            <a-dropdown v-if="selectedRowKeys.length > 0">
+              <a-menu slot="overlay">
+                <a-menu-item :disabled="isDisabledAuth('car:disable')" @click="batchDel" key="1">
+                  <a-icon type="delete"/>
+                  删除
+                </a-menu-item>
+              </a-menu>
+              <a-button style="margin-left: 8px">
+                批量操作
+                <a-icon type="down"/>
+              </a-button>
+            </a-dropdown>
+          </div>
+        </a-col>
+
+        <!--查询、视图切换部分-->
+        <a-col :span="12">
+          <!-- 查询区域 -->
+          <div class="table-page-search-wrapper">
+            <a-form @keyup.enter.native="searchQuery" layout="inline">
+              <a-row :gutter="1">
+                <a-col :md="8" :sm="24">
+                  <a-form-item>
+                    <a-select :allowClear="true" @change="handleTableChange" placeholder="请选择车型" v-model="queryParam.type">
+                      <!--<a-icon slot="suffixIcon" type="caret-down" style="icon: auto"/>-->
+                      <a-select-option value="轿车">轿车</a-select-option>
+                      <a-select-option value="新能源">新能源</a-select-option>
+                      <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
+                      <a-select-option value="油电混合">油电混合</a-select-option>
+                    </a-select>
+                  </a-form-item>
+                </a-col>
+
+                <a-col :md="8" :sm="24">
+                  <a-form-item>
+                    <a-input @change="handleTableChange" placeholder="请输入车名称" v-model="queryParam.name"/>
+                  </a-form-item>
+                </a-col>
+
+                <a-col :md="8" :sm="24">
+                  <span class="table-page-search-submitButtons">
+                    <a-button @click="searchQuery" icon="search" type="primary">查询</a-button>
+                    <!--网格、列表视图切换控件-->
+                    <a-button v-on:click="changeView('grid')"  icon="table" style="margin-left: 10px"/>
+                    <a-button @click="changeView('list')" icon="bars" id="bars"/>
+                  </span>
+                </a-col>
+              </a-row>
+            </a-form>
+          </div>
+        </a-col>
+      </a-row>
+
+    </div>
+
+    <!-- table视图区域-begin -->
+    <div class="grid" v-show="showGrid">
       <a-table
         :columns="columns"
         :dataSource="dataSource"
@@ -76,17 +89,13 @@
                 </span>{{record.id}}<br>
               <span style="color: cornflowerblue; padding-right: 50px">
                   别名
-                </span>{{record.alias}}<br>`
+                </span>{{record.alias}}<br>
               <span style="color: cornflowerblue; padding-right: 50px">
                   logo图
-                </span>
-              <!--{{record.logoImg}}-->
-              <!--<img v-if="!isMultiple && picUrl" :src="getAvatarView()" style="height:50px;max-width:100px"/>-->
-              <img height="100px" src="http://localhost:8080/jeecg-boot/temp/logo_chr_1586329380343.png"
-                   width="100px"><br>
+                </span><img height="100px"  :src=record.logoImg width="100px"><br>
               <span style="color: cornflowerblue; padding-right: 50px">
                   入库记录
-                </span><span v-if="record.createBy !== ''">{{record.createBy}} 于 </span>{{record.createTime}}<br>
+              </span><span v-if="record.createBy !== ''">{{record.createBy}} 于 </span>{{record.createTime}}<br>
             </a-col>
 
             <a-col :span="12">
@@ -98,29 +107,56 @@
                 </span>{{record.identificationCode}}<br>
               <span style="color: cornflowerblue; padding-right: 50px">
                   类型图
-                </span>
-              <img height="100px" src="http://localhost:8080/jeecg-boot/temp/CHR-PCnew_1586329387038.png" width="100px"><br>
+                </span><img height="100px"  :src=record.typeImg width="100px"><br>
               <span style="color: cornflowerblue; padding-right: 50px">
                   最近修改信息
-                </span>{{record.updateBy}} 于 {{record.updateTime}}<br>
+              </span>
+              <p v-if="record.createBy !== ''">{{record.updateBy}}</p> 于 {{record.updateTime}}<br>
+              <!--<p v-else>最近没有修改记录</p>-->
             </a-col>
           </a-row>
         </div>
 
 
         <span slot="action" slot-scope="text, record">
-          <a @click="handleEdit(record)">编辑</a>
+          <a @click="handleEdit(record)" :disabled="isDisabledAuth('car:disable')"><a-icon type="edit" style="padding-right: 5px"/>编辑</a>
           <a-divider type="vertical"/>
-          <a-popconfirm @confirm="() => handleDelete(record.id)" title="确定删除吗?">
-            <a>删除</a>
+          <a-popconfirm @confirm="() => handleDelete(record.id)" @click="showDeleteConfirm" :disabled="isDisabledAuth('car:disable')" title="确定删除吗?">
+            <a><a-icon type="delete" style="padding-right: 5px"/>删除</a>
           </a-popconfirm>
-          <!-- <a-button @click="showDeleteConfirm" type="dashed">
-               删除
-           </a-button>-->
+           <!--<a-button @confirm="() => handleDelete(record.id)" @click="showDeleteConfirm" type="delete">-->
+               <!--删除-->
+           <!--</a-button>-->
         </span>
 
       </a-table>
     </div>
+    <!-- table视图区域-end -->
+
+  <div v-if="showList">
+    <!--列表视图区域-begin-->
+    <a-list class="table-page-search-wrapper" :dataSource="dataSource"  :pagination="ipagination"  @change="handleTableChange">
+      <a-list-item  slot="renderItem"  slot-scope="record" >
+        <a-row :gutter="16 + 8 * 10">
+          <a-col :span="6">
+            <img height="100px"  :src=record.logoImg width="100px"><br>
+          </a-col>
+          <a-col :span="6">
+            <img height="100px"  :src=record.typeImg width="100px"><br>
+          </a-col>
+          <a-col :span="6">
+            <span>官方指导价</span><br> <span style="color: #990055; font-weight: bold; font-size: large" >{{record.suggestPrice}}</span><br> 元起
+          </a-col>
+          <a-col :span="6">
+              <a-button>查看车型</a-button>
+              <a-button>咨询底价</a-button>
+          </a-col>
+        </a-row>
+      </a-list-item>
+    </a-list>
+
+    <!--列表视图区域-end-->
+  </div>
 
     <car-modal @ok="modalFormOk" ref="modalForm"></car-modal>
   </a-card>
@@ -130,27 +166,49 @@
   import STable from '@/components/table/';
   import {getAction} from '@/api/manage';
   // 这个文件是拷贝的JeecgListMixin，试图做些修改，但是引入不了
-  // import {MyJeecgListMixin} from '@/mixins/MyJeecgListMixin.js';
-  import {JeecgListMixin} from '@/mixins/JeecgListMixin.js';
+  // import {MyJeecgListMixin} from '@/mixins/MyJeecgListMixin';
+  import {JeecgListMixin} from '@/mixins/JeecgListMixin';
   import CarModal from './modules/CarModal';
   import ImagPreview from "@/views/jeecg/ImagPreview";
-  import ImgDragSort from "@/views/jeecg/ImgDragSort";
-  import ImgTurnPage from "@/views/jeecg/ImgTurnPage";
+  // 单列数据权限过滤器
+  import { colAuthFilter } from "@/utils/authFilter";
+  // 页面控件禁用依赖
+  import {DisabledAuthFilterMixin} from '@/mixins/DisabledAuthFilterMixin';
+  import ARow from "ant-design-vue/es/grid/Row";
+  import ACol from "ant-design-vue/es/grid/Col";
+
+  const data = [
+    {
+      title: 'Ant Design Title 1',
+    },
+    {
+      title: 'Ant Design Title 2',
+    },
+    {
+      title: 'Ant Design Title 3',
+    },
+    {
+      title: 'Ant Design Title 4',
+    },
+  ];
 
   export default {
-    name: "CarList",
-    mixins: [JeecgListMixin],
+    name: "CarList2",
+    mixins: [JeecgListMixin,DisabledAuthFilterMixin],
     components: {
-      ImgTurnPage,
-      ImgDragSort,
+      ACol,
+      ARow,
       ImagPreview,
       STable,
       CarModal
     },
     data() {
       return {
-        description: '车型管理功能数据表管理页面',
+        description: '车型管理数据操作页面',
         picUrl: false,
+        showGrid: true,
+        showList: false,
+        data,
         // 表头
         columns: [
           {
@@ -218,6 +276,25 @@
     },
     methods: {
 
+      changeView(view) {
+        console.log("视图切换------id：", view)
+        if (view == "grid") {
+          this.showGrid = true;
+          this.showList = false;
+        }else if (view == "list") {
+          this.showList = true;
+          this.showGrid = false;
+        }
+      },
+
+      created() {
+        this.disableMixinCreated=true;
+        this.columns = colAuthFilter(this.columns,'testdemo:name');
+        this.loadData();
+        this.initDictConfig();
+      },
+
+      // 删除确认框
       showDeleteConfirm() {
         this.$confirm({
           title: 'Are you sure delete this task?',
@@ -242,7 +319,7 @@
         // console.log("currentDataSource", currentDataSource);
         this.loadData(pagination.current, sorter, value);
       },
-
+      // args 是当前页码数
       loadData(args, sorter, value) {
         console.log("args：", args);
         if (undefined !== args) {

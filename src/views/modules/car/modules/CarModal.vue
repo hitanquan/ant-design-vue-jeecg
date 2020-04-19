@@ -12,7 +12,7 @@
       <a-form :form="form">
         <!--新增数据页表单-->
         <a-form-item label="名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入车名"/>
+          <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入车型名"/>
         </a-form-item>
 
         <a-row>
@@ -54,7 +54,8 @@
           </a-col>
           <a-col :span="12">
             <a-form-item label="类型图" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <j-image-upload v-decorator="['typeImg', validatorRules.typeImg]" :trigger-change="true"></j-image-upload>
+              <a-icon type="upload" />
+              <j-image-upload v-decorator="['typeImg', validatorRules.typeImg]" :trigger-change="true" ></j-image-upload>
             </a-form-item>
           </a-col>
         </a-row>
@@ -158,8 +159,8 @@
 
       }
     },
-    created () {
-    },
+   /* created () {
+    },*/
     methods: {
       onChange(checked) {
         console.log(`a-switch to ${checked}`);
