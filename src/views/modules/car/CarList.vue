@@ -29,21 +29,18 @@
           <div class="table-page-search-wrapper">
             <a-form @keyup.enter.native="searchQuery" layout="inline">
               <a-row :gutter="1">
-                <a-col :md="8" :sm="24">
+                <a-col :md="16" :sm="24">
                   <a-form-item>
-                    <a-select :allowClear="true" @change="handleTableChange" placeholder="请选择车型" v-model="queryParam.type">
-                      <!--<a-icon slot="suffixIcon" type="caret-down" style="icon: auto"/>-->
-                      <a-select-option value="轿车">轿车</a-select-option>
-                      <a-select-option value="新能源">新能源</a-select-option>
-                      <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
-                      <a-select-option value="油电混合">油电混合</a-select-option>
-                    </a-select>
-                  </a-form-item>
-                </a-col>
-
-                <a-col :md="8" :sm="24">
-                  <a-form-item>
-                    <a-input @change="handleTableChange" placeholder="请输入车名称" v-model="queryParam.name"/>
+                    <a-input-group compact>
+                      <a-select style="width: 40%" :allowClear="true" @change="handleTableChange" placeholder="请选择车型" v-model="queryParam.type">
+                        <!--<a-icon slot="suffixIcon" type="caret-down" style="icon: auto"/>-->
+                        <a-select-option value="轿车">轿车</a-select-option>
+                        <a-select-option value="新能源">新能源</a-select-option>
+                        <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
+                        <a-select-option value="油电混合">油电混合</a-select-option>
+                      </a-select>
+                      <a-input  style="width: 60%" @change="handleTableChange" placeholder="请输入车名称" v-model="queryParam.name"/>
+                    </a-input-group>
                   </a-form-item>
                 </a-col>
 
@@ -51,8 +48,10 @@
                   <span class="table-page-search-submitButtons">
                     <a-button @click="searchQuery" icon="search" type="primary">查询</a-button>
                     <!--网格、列表视图切换控件-->
-                    <a-button v-on:click="changeView('grid')"  icon="table" style="margin-left: 10px"/>
-                    <a-button @click="changeView('list')" icon="bars" id="bars"/>
+                    <a-button-group>
+                    <a-button v-on:click="changeView('grid')" :type="layoutName === 'grid'?'primary':''" icon="table" style="margin-left: 10px"/>
+                    <a-button @click="changeView('list')" :type="layoutName === 'list'?'primary':''" icon="bars" id="bars"/>
+                    </a-button-group>
                   </span>
                 </a-col>
               </a-row>
@@ -64,13 +63,13 @@
     </div>
 
     <!-- table视图区域-begin -->
-    <div class="grid" v-show="showGrid">
+    <div v-if="layoutName === 'grid'">
       <a-table
         :columns="columns"
         :dataSource="dataSource"
         :expandedRowKeys="expandedRowKeys"
         :loading="loading"
-        :pagination="ipagination"
+        :pagination="false"
         @change="handleTableChange"
         @expand="handleExpand"
         ref="table"
@@ -84,59 +83,63 @@
           style="margin: 0">
           <a-row>
             <a-col :span="12">
-                <span style="color: cornflowerblue; padding-right: 50px">
+                <span style="color: #779ecb; padding-right: 50px">
                   ID
                 </span>{{record.id}}<br>
-              <span style="color: cornflowerblue; padding-right: 50px">
+              <span style="color: #779ecb; padding-right: 50px">
                   别名
                 </span>{{record.alias}}<br>
-              <span style="color: cornflowerblue; padding-right: 50px">
+              <span style="color: #779ecb; padding-right: 50px">
                   logo图
-                </span><img height="100px"  :src=record.logoImg width="100px"><br>
-              <span style="color: cornflowerblue; padding-right: 50px">
+                </span><img height="70px"  :src=record.logoImg width="100px"><br>
+              <span style="color: #779ecb; padding-right: 50px">
                   入库记录
-              </span><span v-if="record.createBy !== ''">{{record.createBy}} 于 </span>{{record.createTime}}<br>
+              </span>{{record.storageRecord}}
             </a-col>
 
             <a-col :span="12">
-                <span style="color: cornflowerblue; padding-right: 50px">
+                <span style="color: #779ecb; padding-right: 50px">
                   标题
                 </span>{{record.title}}<br>
-              <span style="color: cornflowerblue; padding-right: 50px">
+              <span style="color: #779ecb; padding-right: 50px">
                   识别码
                 </span>{{record.identificationCode}}<br>
-              <span style="color: cornflowerblue; padding-right: 50px">
-                  类型图
-                </span><img height="100px"  :src=record.typeImg width="100px"><br>
-              <span style="color: cornflowerblue; padding-right: 50px">
+              <span style="color: #779ecb; padding-right: 50px">
+                  车型图
+                </span><img height="70px"  :src=record.typeImg width="100px"><br>
+              <span style="color: #779ecb; padding-right: 50px">
                   最近修改信息
-              </span>
-              <p v-if="record.createBy !== ''">{{record.updateBy}}</p> 于 {{record.updateTime}}<br>
-              <!--<p v-else>最近没有修改记录</p>-->
+              </span>{{record.updateRecord}}
             </a-col>
           </a-row>
         </div>
 
-
-        <span slot="action" slot-scope="text, record">
-          <a @click="handleEdit(record)" :disabled="isDisabledAuth('car:disable')"><a-icon type="edit" style="padding-right: 5px"/>编辑</a>
+        <div slot="action" slot-scope="text, record">
+          <span @click="handleEdit(record)" :disabled="isDisabledAuth('car:disable')"><a-icon type="edit" style="padding-right: 5px"/>编辑</span>
           <a-divider type="vertical"/>
-          <a-popconfirm @confirm="() => handleDelete(record.id)" @click="showDeleteConfirm" :disabled="isDisabledAuth('car:disable')" title="确定删除吗?">
-            <a><a-icon type="delete" style="padding-right: 5px"/>删除</a>
-          </a-popconfirm>
-           <!--<a-button @confirm="() => handleDelete(record.id)" @click="showDeleteConfirm" type="delete">-->
-               <!--删除-->
-           <!--</a-button>-->
-        </span>
+          <!--<a-popconfirm @confirm="() => handleDelete(record.id)" @click="showDeleteConfirm" :disabled="isDisabledAuth('car:disable')" title="确定删除吗?">
+            <a><a-icon type="delete" style="padding-right: 5px" @click="showDeleteConfirm" />删除</a>
+          </a-popconfirm>-->
 
+          <!-- <span :disabled="isDisabledAuth('car:disable')" @click="showDeleteConfirm(record.id)">
+               <a-icon type="delete" style="padding-right: 5px" />删除
+           </span>-->
+
+          <span type="primary" @click="showModal"><span type="delete" style="padding-right: 5px"/>
+            <a-button @click="showDeleteConfirm(record.id)" hidden="hidden">Confirm</a-button>删除
+          </span>
+          <a-modal title="删除确认" v-model="visible" @ok="hideModal" okText="确认" cancelText="取消">
+              <p>此操作将永久删除该车型(<span style="color: red">{{record.name}}</span>),是否继续?</p>
+          </a-modal>
+        </div>
       </a-table>
     </div>
     <!-- table视图区域-end -->
 
-  <div v-if="showList">
+  <div v-if="layoutName === 'list'"  @change="handleTableChange">
     <!--列表视图区域-begin-->
-    <a-list class="table-page-search-wrapper" :dataSource="dataSource"  :pagination="ipagination"  @change="handleTableChange">
-      <a-list-item  slot="renderItem"  slot-scope="record" >
+    <a-list class="table-page-search-wrapper" :dataSource="dataSource"  >
+      <a-list-item  slot="renderItem"  slot-scope="record">
         <a-row :gutter="16 + 8 * 10">
           <a-col :span="6">
             <img height="100px"  :src=record.logoImg width="100px"><br>
@@ -148,25 +151,24 @@
             <span>官方指导价</span><br> <span style="color: #990055; font-weight: bold; font-size: large" >{{record.suggestPrice}}</span><br> 元起
           </a-col>
           <a-col :span="6">
-              <a-button>查看车型</a-button>
+              <a-button :labelCol="{span: 4, offset: 2}">查看车型</a-button>
               <a-button>咨询底价</a-button>
           </a-col>
         </a-row>
       </a-list-item>
     </a-list>
-
     <!--列表视图区域-end-->
   </div>
-
+    <div style="padding-top: 15px; float: right">
+    <a-pagination :showQuickJumper="true" :showSizeChanger="true" :defaultCurrent="1" :total="ipagination.total" :showTotal="total => `共 ${total} 条`" :defaultPageSize="10" :pageSizeOptions="['10', '20', '30', '40']" @showSizeChange="onPageSizeChange" @change="onPageChange" />
+    </div>
     <car-modal @ok="modalFormOk" ref="modalForm"></car-modal>
   </a-card>
 </template>
 
 <script>
   import STable from '@/components/table/';
-  import {getAction} from '@/api/manage';
-  // 这个文件是拷贝的JeecgListMixin，试图做些修改，但是引入不了
-  // import {MyJeecgListMixin} from '@/mixins/MyJeecgListMixin';
+  import {deleteAction, getAction} from '@/api/manage';
   import {JeecgListMixin} from '@/mixins/JeecgListMixin';
   import CarModal from './modules/CarModal';
   import ImagPreview from "@/views/jeecg/ImagPreview";
@@ -177,23 +179,8 @@
   import ARow from "ant-design-vue/es/grid/Row";
   import ACol from "ant-design-vue/es/grid/Col";
 
-  const data = [
-    {
-      title: 'Ant Design Title 1',
-    },
-    {
-      title: 'Ant Design Title 2',
-    },
-    {
-      title: 'Ant Design Title 3',
-    },
-    {
-      title: 'Ant Design Title 4',
-    },
-  ];
-
   export default {
-    name: "CarList2",
+    name: "CarList",
     mixins: [JeecgListMixin,DisabledAuthFilterMixin],
     components: {
       ACol,
@@ -206,9 +193,25 @@
       return {
         description: '车型管理数据操作页面',
         picUrl: false,
+        layoutName: 'grid',
         showGrid: true,
         showList: false,
-        data,
+        sorter2: {},
+        pageSize: 10,
+        size: 10,
+        visible: false,
+        /* 分页参数 */
+       /* ipagination:{
+          current: 1,
+          pageSize: 10,
+          pageSizeOptions: ['10', '20', '30'],
+          showTotal: (total, range) => {
+            return range[0] + "-" + range[1] + " 共" + total + "条"
+          },
+          showQuickJumper: true,
+          showSizeChanger: true,
+          total: 0
+        },*/
         // 表头
         columns: [
           {
@@ -226,8 +229,6 @@
             align: "right",
             key: 'type',
             dataIndex: 'type',
-            // 默认排序方式
-            // defaultSortOrder: 'descend',
             sorter: true
           },
           {
@@ -275,63 +276,71 @@
       }
     },
     methods: {
+      // 数据条数变化后的回调
+      onPageSizeChange(page, pageSize){
+        this.loadData(page, pageSize)
+      },
+
+      // 页码变化后的回调
+      onPageChange(current, size) {
+        console.log("current:",current)
+        console.log("size:",size)
+        this.loadData(current, size)
+      },
 
       changeView(view) {
         console.log("视图切换------id：", view)
-        if (view == "grid") {
-          this.showGrid = true;
-          this.showList = false;
-        }else if (view == "list") {
-          this.showList = true;
-          this.showGrid = false;
-        }
+        this.layoutName = view
+        // if (view == "grid") {
+        //   this.showGrid = true;
+        //   this.showList = false;
+        // }else if (view == "list") {
+        //   this.showList = true;
+        //   this.showGrid = false;
+        // }
       },
 
-      created() {
+      /*created() {
         this.disableMixinCreated=true;
         this.columns = colAuthFilter(this.columns,'testdemo:name');
         this.loadData();
         this.initDictConfig();
-      },
+      },*/
 
-      // 删除确认框
-      showDeleteConfirm() {
-        this.$confirm({
-          title: 'Are you sure delete this task?',
-          content: 'Some descriptions',
-          okText: 'Yes',
-          okType: 'danger',
-          cancelText: 'No',
-          onOk() {
-            console.log('OK');
-          },
-          onCancel() {
-            console.log('Cancel');
-          },
-        });
-      },
-
-      handleTableChange(pagination, filters, sorter, value) {
+      // 分页、筛选、排序
+      handleTableChange(pagination, filters, sorter) {
         console.log("pagination", pagination);
         console.log("filters", filters);
         console.log("sorter", sorter);
+        this.sorter2 = sorter
         // {currentDataSource}
         // console.log("currentDataSource", currentDataSource);
-        this.loadData(pagination.current, sorter, value);
+        this.loadData(pagination.current, pagination.pageSize);
       },
-      // args 是当前页码数
-      loadData(args, sorter, value) {
+
+      handleListChange(pagination) {
+        console.log("pagination", pagination);
+        this.loadData(pagination.current);
+      },
+
+      // 加载数据
+      // args 是通用参数，传入什么就代表什么
+      loadData(args, size) {
         console.log("args：", args);
+        console.log("size：", size);
         if (undefined !== args) {
           this.ipagination.current = args
+        }
+        if (undefined !== size) {
+          this.ipagination.pageSize = size
         }
         this.loading = true;
         this.expandedRowKeys = [];
         // 获取查询参数，
         let params = this.getQueryParams();
-        if (null != sorter) {
-          params.sorterName = sorter.field;
-          params.sorterRule = sorter.order;
+        if (null != this.sorter2) {
+          params.sorterName = this.sorter2.field;
+          params.sorterRule = this.sorter2.order;
         }
         return new Promise((resolve) => {
           console.log("params:", params);
@@ -354,6 +363,93 @@
           })
         })
       },
+
+      handleAdd: function () {
+        this.$refs.modalForm.add();
+        this.$refs.modalForm.title = "新建车型";
+        this.$refs.modalForm.disableSubmit = false;
+        // 新增一条数据后应该重新加载页面数据
+        this.loadData();
+      },
+
+      handleEdit: function (record) {
+        this.$refs.modalForm.edit(record);
+        this.$refs.modalForm.title = "编辑车型";
+        this.$refs.modalForm.disableSubmit = false;
+      },
+
+
+      showModal() {
+        this.visible = true;
+       /* console.log("id:", id)
+        let that =this;
+        /!*this.$confirm({
+          title: '此操作将永久删除该车型是否继续?',
+          content: 'gggggggg',
+          centered : true,
+          okType: 'danger',
+          icon: 'question-circle',
+          okText: '确定',
+          cancelText: '取消',
+          onOk() {*!/
+            deleteAction(that.url.delete, {id: id}).then((res) => {
+              console.log('OK');
+              if (res.success) {
+                that.$message.success(res.message);
+                that.loadData();
+              } else {
+                that.$message.warning(res.message);
+              }
+            });
+         /!* },
+          onCancel() {
+            console.log('Cancel');
+          }*!/
+       // });*/
+      },
+
+      hideModal() {
+        this.visible = false;
+      },
+
+      confirm() {
+        this.$confirm({
+          title: '删除确认',
+          content: '此操作将永久删除该车型是否继续?',
+          okText: '确认',
+          cancelText: '取消',
+        });
+      },
+
+      // 删除确认框
+      showDeleteConfirm(id) {
+        console.log("id:", id)
+        let that = this;
+        this.$confirm({
+          title: '此操作将永久删除该车型是否继续?',
+          content: 'gggggggg',
+          centered : true,
+          okType: 'danger',
+          icon: 'question-circle',
+          okText: '确定',
+          cancelText: '取消',
+          onOk() {
+            deleteAction(that.url.delete, {id: id}).then((res) => {
+              console.log('OK');
+              if (res.success) {
+                that.$message.success(res.message);
+                that.loadData();
+              } else {
+                that.$message.warning(res.message);
+              }
+            });
+          },
+          onCancel() {
+            console.log('Cancel');
+          },
+        });
+      },
+
       getDataByResult(result) {
         return result.map(item => {
           //判断是否标记了带有子节点

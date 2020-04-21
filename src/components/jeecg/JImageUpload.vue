@@ -16,8 +16,9 @@
     @preview="handlePreview">
     <img v-if="!isMultiple && picUrl" :src="getAvatarView()" style="height:80px;max-width:100px"/>
     <div v-else >
-      <a-icon :type="uploadLoading ? 'loading' : 'plus'" />
-      <div class="ant-upload-text">{{ text }}</div>
+      <a-button>
+        <a-icon type="upload" />{{ text }}
+      </a-button>
     </div>
     <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel()">
       <img alt="example" style="width: 100%" :src="previewImage"/>
@@ -62,7 +63,7 @@
       text:{
         type:String,
         required:false,
-        default:""
+        default:" 点击上传"
       },
       /*这个属性用于控制文件上传的业务路径*/
       bizPath:{

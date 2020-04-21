@@ -9,33 +9,38 @@
     :destroyOnClose="true"
     cancelText="关闭">
     <a-spin :spinning="confirmLoading">
-      <a-form :form="form">
+      <a-form :form="form" :layout="formLayout">
         <!--新增数据页表单-->
-        <a-form-item label="名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入车型名"/>
-        </a-form-item>
-
-        <a-row>
-          <a-col :span="12">
-            <a-form-item label="别名" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-input v-decorator="[ 'alias', validatorRules.alias]" placeholder="请输入别名"/>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="识别码" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-input v-decorator="[ 'identificationCode', validatorRules.identificationCode]" placeholder="请输入识别码"/>
-            </a-form-item>
+        <a-row span="24">
+          <a-col>
+          <a-form-item label="名称" :labelCol="{span: 2, offset: 1}" :wrapperCol="wrapperCol">
+            <a-input v-decorator="[ 'name', validatorRules.name]" placeholder="请输入车型名" style="width: 125%; height: 35px"/>
+          </a-form-item>
           </a-col>
         </a-row>
 
-        <a-row>
+       <a-row span="24">
           <a-col :span="12">
-            <a-form-item label="指导价" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-input v-decorator="[ 'suggestPrice', validatorRules.suggestPrice]" placeholder="请输入指导价" style="width: 100%"/>
+            <a-form-item label="别名"  :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
+              <a-input v-decorator="[ 'alias', validatorRules.alias]"  placeholder="请输入别名" style="height: 35px"/>
+            </a-form-item>
+          </a-col>
+
+         <a-col :span="12">
+           <a-form-item label="识别码" :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
+             <a-input v-decorator="[ 'identificationCode', validatorRules.identificationCode]"  placeholder="请输入识别码" style="height: 35px"/>
+           </a-form-item>
+         </a-col>
+       </a-row>
+
+        <a-row span="24">
+          <a-col :span="12">
+            <a-form-item label="指导价" :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
+              <a-input v-decorator="[ 'suggestPrice', validatorRules.suggestPrice]" placeholder="请输入指导价" style="height: 35px"/>
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item label="类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
+            <a-form-item label="类型" :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
               <a-select placeholder="请选择车型" v-decorator="[ 'type', validatorRules.type]" default-value="0">
                 <a-select-option value="轿车">轿车</a-select-option>
                 <a-select-option value="新能源">新能源</a-select-option>
@@ -48,25 +53,28 @@
 
         <a-row>
           <a-col :span="12">
-            <a-form-item label="logo图" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <j-image-upload v-decorator="['logoImg', validatorRules.logoImg]" :trigger-change="true"></j-image-upload>
+            <a-form-item label="logo图" :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
+              <j-image-upload  v-decorator="['logoImg', validatorRules.logoImg]" :trigger-change="true" style="margin-left: 30px"></j-image-upload>
             </a-form-item>
           </a-col>
           <a-col :span="12">
-            <a-form-item label="类型图" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-icon type="upload" />
-              <j-image-upload v-decorator="['typeImg', validatorRules.typeImg]" :trigger-change="true" ></j-image-upload>
+            <a-form-item label="类型图" :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol">
+              <j-image-upload v-decorator="['typeImg', validatorRules.typeImg]" :trigger-change="true" style="margin-left: 30px"></j-image-upload>
             </a-form-item>
           </a-col>
         </a-row>
 
-        <a-form-item label="链接" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="[ 'link', validatorRules.link]" placeholder="请输入链接"></a-input>
-        </a-form-item>
+        <a-row :span="24">
+          <a-col>
+            <a-form-item label="链接" :labelCol="{span: 2, offset: 1}" :wrapperCol="wrapperCol">
+              <a-input v-decorator="[ 'link', validatorRules.link]" placeholder="请输入链接" style="width: 125%; height: 35px"></a-input>
+            </a-form-item>
+            </a-col>
+        </a-row>
 
-        <a-form-item label="是否新品" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <!--<span>是否新品</span>-->
-          <a-switch  defaultChecked @change="onChange" checkedChildren="是" unCheckedChildren="否"/>
+        <a-form-item label="是否新品" :labelCol="{span: 2, offset: 1}" :wrapperCol="wrapperCol">
+          <!--<a-checkbox value="1" v-decorator="['isNew', validatorRules.isNew]" defaultChecked @change="onChange" style="margin-left: 5px"/>-->
+          <a-switch v-decorator="['isNew', validatorRules.isNew]" defaultChecked @change="onChange" checkedChildren="是"  unCheckedChildren="否" style="margin-left: 5px"/>
         </a-form-item>
       </a-form>
     </a-spin>
@@ -79,13 +87,17 @@
   import pick from 'lodash.pick'
   import { validate} from '@/utils/util'
   import JDate from '@/components/jeecg/JDate'
-  //import JUpload from '@/components/jeecg/JUpload'
+  import JUpload from '@/components/jeecg/JUpload'
   import JImageUpload from '@/components/jeecg/JImageUpload'
   import JTreeSelect from '@/components/jeecg/JTreeSelect'
+  import ARow from "ant-design-vue/es/grid/Row";
+  import ACol from "ant-design-vue/es/grid/Col";
 
   export default {
     name: "CarModal",
     components: {
+      ACol,
+      ARow,
       JDate,
       JImageUpload,
       //JUpload,
@@ -98,6 +110,7 @@
         width:800,
         visible:false,
         model: {},
+        formLayout: 'horizontal',
         labelCol: {
           xs: { span: 24 },
           sm: { span: 5 },
@@ -137,7 +150,6 @@
             {pattern:/^(?:([A-Za-z]+):)?(\/{0,3})([0-9.\-A-Za-z]+)(?::(\d+))?(?:\/([^?#]*))?(?:\?([^#]*))?(?:#(.*))?$/, message: '请输入正确的网址!'},
           ]},
           isNew: {rules: [
-            {pattern:/^-?\d+$/, message: '请输入整数!'},
           ]},
           createBy: {rules: [
           ]},
@@ -146,8 +158,6 @@
           updateBy: {rules: [
           ]},
           updateTime: {rules: [
-          ]},
-          pid: {rules: [
           ]},
         },
         url: {
@@ -159,9 +169,33 @@
 
       }
     },
-   /* created () {
-    },*/
+
+    computed: {
+      formItemLayout() {
+        const { formLayout } = this;
+        return formLayout === 'horizontal'
+          ? {
+            labelCol: { span: 4 },
+            wrapperCol: { span: 14 },
+          }
+          : {};
+      },
+      buttonItemLayout() {
+        const { formLayout } = this;
+        return formLayout === 'horizontal'
+          ? {
+            wrapperCol: { span: 14, offset: 4 },
+          }
+          : {};
+      },
+    },
+
     methods: {
+
+      handleFormLayoutChange(e) {
+        this.formLayout = e.target.value;
+      },
+
       onChange(checked) {
         console.log(`a-switch to ${checked}`);
         // TODO 是否新品传值逻辑

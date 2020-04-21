@@ -12,7 +12,7 @@ export function disabledAuthFilter(code, formData) {
 function nodeDisabledAuth(code, formData) {
   let permissionList = [];
   try {
-    console.log("页面权限禁用--NODE--开始",obj);
+    //console.log("页面权限禁用--NODE--开始",obj);
     if (formData) {
       let bpmList = formData.permissionList;
       permissionList = bpmList.filter(item => item.type == '2')
@@ -25,28 +25,28 @@ function nodeDisabledAuth(code, formData) {
       return false;
     }
   } catch (e) {
-    console.log("页面权限异常----", e);
+    //console.log("页面权限异常----", e);
   }
 
   if (permissionList.length == 0) {
     return false;
   }
 
-  console.log("流程节点页面权限禁用--NODE--开始");
+  //console.log("流程节点页面权限禁用--NODE--开始");
   let permissions = [];
   for (let item of permissionList) {
     if (item.type == '2') {
       permissions.push(item.action);
     }
   }
-  console.log("页面权限----"+code);
+  //console.log("页面权限----"+code);
 
   if (!permissions.includes(code)) {
     return false;
   } else {
     for (let item2 of permissionList) {
       if (code === item2.action) {
-        console.log("流程节点页面权限禁用--NODE--生效");
+        //console.log("流程节点页面权限禁用--NODE--生效");
         return true;
       }
     }
@@ -55,7 +55,7 @@ function nodeDisabledAuth(code, formData) {
 }
 
 function globalDisabledAuth(code) {
-  console.log("全局页面禁用权限--Global--开始");
+  //console.log("全局页面禁用权限--Global--开始");
 
   var permissionList = [];
   var allPermissionList = [];
@@ -67,7 +67,7 @@ function globalDisabledAuth(code) {
       permissionList.push(auth);
     }
   }
-  console.log("页面禁用权限--Global--",sessionStorage.getItem(SYS_BUTTON_AUTH));
+  //console.log("页面禁用权限--Global--",sessionStorage.getItem(SYS_BUTTON_AUTH));
   let allAuthList = JSON.parse(sessionStorage.getItem(SYS_BUTTON_AUTH) || "[]");
   for (let gauth of allAuthList) {
     if (gauth.type == '2') {
@@ -107,13 +107,13 @@ function globalDisabledAuth(code) {
       permissions.push(item.action);
     }
   }
-  console.log("页面禁用权限----"+code);
+  //console.log("页面禁用权限----"+code);
   if (!permissions.includes(code)) {
     return gFlag;
   } else {
     for (let item2 of permissionList) {
       if (code === item2.action) {
-        console.log("全局页面权限解除禁用--Global--生效");
+        //console.log("全局页面权限解除禁用--Global--生效");
         gFlag = false;
       }
     }
@@ -158,7 +158,7 @@ function getNoAuthCols(pre) {
     }
   }
   // 系统按钮授权
-  console.log("页面禁用权限--Global--",sessionStorage.getItem(SYS_BUTTON_AUTH));
+  //console.log("页面禁用权限--Global--",sessionStorage.getItem(SYS_BUTTON_AUTH));
   let allAuthList = JSON.parse(sessionStorage.getItem(SYS_BUTTON_AUTH) || "[]");
   for (let gauth of allAuthList) {
     //显示策略，有效状态
