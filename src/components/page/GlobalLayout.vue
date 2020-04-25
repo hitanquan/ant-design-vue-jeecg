@@ -672,7 +672,7 @@
   .content {
 
     .table-operator {
-      margin-bottom: 18px;
+      margin-bottom: 10px;
 
       button {
         margin-right: 8px;

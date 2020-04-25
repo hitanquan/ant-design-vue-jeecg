@@ -30,10 +30,10 @@ export const JeecgListMixin = {
         total: 0
       },
       /* 排序参数 */
-      /*isorter:{
+      isorter:{
         column: 'createTime',
         order: 'desc',
-      },*/
+      },
       /* 筛选参数 */
       filters: {},
       /* table加载状态 */
@@ -102,7 +102,7 @@ export const JeecgListMixin = {
         sqp['superQueryParams']=encodeURI(this.superQueryParams)
       }
       var param = Object.assign(sqp, this.queryParam, this.isorter ,this.filters);
-      //param.field = this.getQueryField();
+      param.field = this.getQueryField();
       param.pageNo = this.ipagination.current;
       param.pageSize = this.ipagination.pageSize;
       return filterObj(param);

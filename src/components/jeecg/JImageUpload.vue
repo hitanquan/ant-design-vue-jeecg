@@ -16,17 +16,25 @@
     @preview="handlePreview">
     <img v-if="!isMultiple && picUrl" :src="getAvatarView()" style="height:80px;max-width:100px"/>
     <div v-else >
-      <a-button>
+     <!-- <a-button>
         <a-icon type="upload" />{{ text }}
+      </a-button>-->
+
+     <!--原型页面那样的上传图标和移除图标 -->
+      <a-button :visible="displayIcon" :style="{ backgroundColor: '#1890FF', border: '1px solid #28B16E', marginLeft: '80px' }" size="large" shape="circle">
+        <a-icon type="upload" />
+      </a-button>
+      <a-button :style="{ backgroundColor: 'white', border: '1px solid #28B16E', marginLeft: '10px'}" size="large" shape="circle">
+        <a-icon type="close-circle" />
       </a-button>
     </div>
+
     <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel()">
       <img alt="example" style="width: 100%" :src="previewImage"/>
     </a-modal>
 
   </a-upload>
 
-  <!--<a-button> <a-icon type="upload" /> upload </a-button>-->
   </div>
 </template>
 
@@ -57,6 +65,7 @@
         fileList: [],
         previewImage:"",
         previewVisible: false,
+        displayIcon: false
       }
     },
     props:{

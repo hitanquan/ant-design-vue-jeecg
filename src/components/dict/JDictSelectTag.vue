@@ -3,8 +3,8 @@
     <a-radio v-for="(item, key) in dictOptions" :key="key" :value="item.value">{{ item.text }}</a-radio>
   </a-radio-group>
 
-  <a-select v-else-if="tagType=='select'" :getPopupContainer = "(target) => target.parentNode" :placeholder="placeholder" :disabled="disabled" :value="getValueSting" @change="handleInput">
-    <a-select-option :value="undefined">请选择</a-select-option>
+  <a-select v-else-if="tagType=='select'" :getPopupContainer = "(target) => target.parentNode" :triggerChange="true"  :disabled="disabled" :value="getValueSting" :allowClear="true" @change="handleInput">
+    <a-select-option :value="undefined">请选择车型</a-select-option>
     <a-select-option v-for="(item, key) in dictOptions" :key="key" :value="item.value">
       <span style="display: inline-block;width: 100%" :title=" item.text || item.label ">
         {{ item.text || item.label }}
@@ -72,8 +72,9 @@
         }else{
           val = e
         }
-        console.log(val);
+        console.log("下拉选择的参数值：", val);
         if(this.triggerChange){
+          console.log("进入了方法没测试")
           this.$emit('change', val);
         }else{
           this.$emit('input', val);
