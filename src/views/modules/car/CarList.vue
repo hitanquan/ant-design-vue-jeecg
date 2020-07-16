@@ -34,8 +34,8 @@
                 <a-col :md="16" :sm="24">
                   <a-form-item>
                     <a-input-group compact>
-                      <!--<j-dict-select-tag dict-code="type" style="width:40%"  :triggerChange="true" @change="queryByType"  v-model="queryParam.type"/>-->
-                      <a-select style="width: 40%" :allowClear="true"  placeholder="请选择车型" @change="handleTableChange" @deselect="queryByType" v-model="queryParam.type">
+                      <!--<j-dict-select-tag dict-code="type" style="width:40%" :triggerChange="true" @change="handleTableChange"  v-model="queryParam.type"/>-->
+                      <a-select style="width: 40%" :allowClear="true"  placeholder="请选择车型" @change="handleTableChange" v-model="queryParam.type">
                         <a-icon slot="suffixIcon" type="caret-down" style="icon: auto"/>
                         <a-select-option value="1">轿车</a-select-option>
                         <a-select-option value="2">新能源</a-select-option>
@@ -151,7 +151,7 @@
             </a-col>
             <a-col :span="6">
               <img :src="record.pageTypeImg">
-            </a-col
+            </a-col>
             <a-col :span="6" style="margin-top: 10px">
               官方指导价<br><span>{{record.suggestPrice}}</span><br>元起
             </a-col>
@@ -206,7 +206,6 @@
       ImagPreview,
       STable,
       CarModal,
-      //JDictSelectTag
     },
     data() {
       return {
@@ -222,18 +221,6 @@
         deleteModalVisible: false,
         carDictOptions: [],
 
-        /* 分页参数 */
-        /*ipagination:{
-          current: 1,
-          pageSize: 10,
-          pageSizeOptions: ['10', '20', '30'],
-          showTotal: (total, range) => {
-            return range[0] + "-" + range[1] + " 共" + total + "条"
-          },
-          showQuickJumper: true,
-          showSizeChanger: true,
-          total: 0
-        },*/
         // 表头
         columns: [
           {
@@ -264,7 +251,6 @@
             title: '入库时间',
             align: "right",
             key: 'createTime',
-            // dataIndex: 'createTime',
             dataIndex: 'createTime',
             sorter: true
           },
@@ -288,7 +274,6 @@
         currentRecord: {}
       }
     },
-
     computed: {
       tableProps() {
         let _this = this
@@ -301,16 +286,13 @@
         }
       }
     },
-
     methods: {
-
       // 指导价格处理
       toThousandsNoZero(num) {
         return num ? ((isNaN(parseFloat(num.toString().replace(/,/g, ""))) ? 1 : parseFloat(num.toString().replace(/,/g, "")))).toFixed(2).toString().replace(/(\d)(?=(\d{3})+\.)/g, function ($0, $1) {
           return $1 + ",";
         }) : "";
       },
-
       // 入库时间格式化处理
       formatCreateTime(time) {
         let storageTime = new Date(time);
@@ -337,47 +319,30 @@
           return parseInt(s / 60 / 60 / 24 / 30 / 12) + '年前';
         }
       },
-
       // 数据条数变化后的回调
       onPageSizeChange(page, pageSize) {
         this.loadData(page, pageSize)
       },
-
       // 页码变化后的回调
       onPageChange(current, size) {
         console.log("current:", current)
         console.log("size:", size)
         this.loadData(current, size)
       },
-
       changeView(view) {
         // console.log("视图切换------id：", view)
         this.layoutName = view
       },
-
       created() {
-        this.disableMixinCreated = true;
-        this.columns = colAuthFilter(this.columns, 'testdemo:name');
-        this.loadData();
-        this.initDictConfig();
       },
-
-      queryByType(type) {
-        // console.log("type", type)
-        let params = this.getQueryParams();
-        console.log("params哈哈哈:", params)
-        this.searchQuery(type);
-      },
-
       // 分页、筛选、排序
       handleTableChange(pagination, filters, sorter) {
         console.log("pagination", pagination);
         console.log("filters", filters);
         console.log("sorter", sorter);
         this.sorter2 = sorter
-        this.loadData(pagination.current, pagination.pageSize);
+        this.loadData(1);
       },
-
       // 加载数据
       // args 是通用参数，传入什么就代表什么
       loadData(args, size) {
@@ -393,6 +358,7 @@
         this.expandedRowKeys = [];
         // 获取查询参数，
         let params = this.getQueryParams();
+        // this.loading = true;
         if (null != this.sorter2) {
           params.sorterName = this.sorter2.field;
           params.sorterRule = this.sorter2.order;
@@ -406,7 +372,7 @@
               result.records.forEach(item => {
                 // console.log("createTime:", result.records.createTime);
                 // 入库时间、指导价格格式化
-                item.storageIime = this.formatCreateTime(item.storageIime);
+                item.createTime = this.formatCreateTime(item.createTime);
                 item.guidePrice = this.toThousandsNoZero(item.guidePrice);
                 this.dataSource.push(item);
               });
@@ -425,19 +391,16 @@
           })
         })
       },
-
       handleAdd: function () {
         this.$refs.modalForm.add();
         this.$refs.modalForm.title = "新建车型";
         this.$refs.modalForm.disableSubmit = false;
       },
-
       handleEdit: function (record) {
         this.$refs.modalForm.edit(record);
         this.$refs.modalForm.title = "编辑车型";
         this.$refs.modalForm.disableSubmit = false;
       },
-
       async doDelete() {
         const record = this.currentRecord
         const res = await deleteAction(this.url.delete, {id: record.id})
@@ -449,7 +412,6 @@
         }
         this.deleteModalVisible = false;
       },
-
       confirm() {
         this.$confirm({
           title: '删除确认',
@@ -458,12 +420,10 @@
           cancelText: '取消',
         });
       },
-
       showDeleteConfirm(record) {
         this.currentRecord = record
         this.deleteModalVisible = true
       },
-
       getDataByResult(result) {
         return result.map(item => {
           //判断是否标记了带有子节点
@@ -474,7 +434,6 @@
           return item
         })
       },
-
       handleExpand(expanded, record) {
         //判断是否是展开状态
         if (expanded) {
@@ -504,7 +463,6 @@
           }
         }
       },
-
       modalFormOk(formData, arr) {
         if (!formData.id) {
           this.addOk(formData, arr)
@@ -517,7 +475,6 @@
           }
         }
       },
-
       editOk(formData, arr) {
         if (arr && arr.length > 0) {
           for (let i = 0; i < arr.length; i++) {
@@ -530,7 +487,6 @@
           }
         }
       },
-
       async addOk(formData, arr) {
         console.log("formData", formData);
         console.log("arr", arr);
@@ -543,7 +499,6 @@
           }
         }
       },
-
       getFormDataById(id, arr) {
         if (arr && arr.length > 0) {
           for (let i = 0; i < arr.length; i++) {
@@ -555,6 +510,9 @@
           }
         }
       },
+    },
+    // TODO 尝试使用过滤器实现将入库时间、指导价格式化
+    filters: {
     }
   }
 </script>

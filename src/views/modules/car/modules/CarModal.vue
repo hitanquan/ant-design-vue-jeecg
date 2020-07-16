@@ -46,13 +46,13 @@
 
           <a-col :span="12">
             <a-form-item :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol" label="类型">
-              <j-dict-select-tag :triggerChange="true" dict-code="type" v-decorator="[ 'type', validatorRules.type]"/>
-              <!-- <a-select placeholder="请选择车型" v-decorator="[ 'type', validatorRules.type]" default-value="0">
+              <!-- <j-dict-select-tag :triggerChange="true" dict-code="type" v-decorator="[ 'type', validatorRules.type]"/> -->
+              <a-select placeholder="请选择车型" v-decorator="[ 'type', validatorRules.type]" default-value="0">
                  <a-select-option value="轿车">轿车</a-select-option>
                  <a-select-option value="新能源">新能源</a-select-option>
                  <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
                  <a-select-option value="油电混合">油电混合</a-select-option>
-               </a-select>-->
+               </a-select>
             </a-form-item>
           </a-col>
         </a-row>
