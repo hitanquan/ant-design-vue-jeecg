@@ -1,6 +1,6 @@
+/* eslint-disable prefer-promise-reject-errors */
 <template>
   <a-card :bordered="false">
-    
     <!-- 操作按钮区域 -->
     <div class="table-operator">
       <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
@@ -32,226 +32,349 @@
         :pagination="ipagination"
         :loading="loading"
         :expandedRowKeys="expandedRowKeys"
+        :selectedRowKeys="selectedRowKeys"
         @change="handleTableChange"
         @expand="handleExpand"
         v-bind="tableProps">
-        
+
         <span slot="action" slot-scope="text, record">
           <a @click="handleEdit(record)">编辑</a>
           <a-divider type="vertical" />
-          <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
-            <a>删除</a>
-          </a-popconfirm>
+          <a @click="showDeleteConfirm(record)" >删除</a>
+          <a-divider type="vertical" />
+          <a @click="handleAddSub(record)">添加下级</a>
+           <a-divider type="vertical" />
+          <a @click="handleImportSub(record)">导入下级</a>
         </span>
-
       </a-table>
-    </div>
 
+      <a-modal
+        @ok="handleDelete"
+        cancelText="取消"
+        okText="确认"
+        title="删除确认"
+        :confirmLoading="confirmLoading"
+        v-model="deleteModalVisible"
+       >
+
+        <p>
+          <a-icon style="size: legal; padding-right: 5px" type="warning"/>
+          <span v-if="this.isHasChildMessage === true">
+            当前分类存在子节点，此操作将永久删除该分类(<span style="color: red">{{currentRecord.name}}</span>)及其子节点，是否继续?
+          </span>
+          <span v-else>
+            此操作将永久删除该分类(<span style="color: red">{{currentRecord.name}}</span>)，是否继续?
+          </span>
+        </p>
+      </a-modal>
+    </div>
     <sysCategory-modal ref="modalForm" @ok="modalFormOk"></sysCategory-modal>
+    <sysCategoryBatch-modal ref="modalForm2" @ok="modalFormOk"></sysCategoryBatch-modal>
   </a-card>
 </template>
 
 <script>
 
-  import { getAction } from '@/api/manage'
-  import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import SysCategoryModal from './modules/SysCategoryModal'
-  
-  export default {
-    name: "SysCategoryList",
-    mixins:[JeecgListMixin],
-    components: {
-      SysCategoryModal
-    },
-    data () {
-      return {
-        description: '分类字典管理页面',
-        // 表头
-        columns: [
-          {
-            title:'类型名称',
-            align:"left",
-            dataIndex: 'name'
-          },
-          {
-            title:'类型编码',
-            align:"left",
-            dataIndex: 'code'
-          },
-          {
-            title: '操作',
-            dataIndex: 'action',
-            align:"center",
-            scopedSlots: { customRender: 'action' },
-          }
-        ],
-        url: {
-          list: "/sys/category/rootList",
-          childList: "/sys/category/childList",
-          delete: "/sys/category/delete",
-          deleteBatch: "/sys/category/deleteBatch",
-          exportXlsUrl: "/sys/category/exportXls",
-          importExcelUrl: "sys/category/importExcel",
+import { getAction, deleteAction } from '@/api/manage'
+import { JeecgListMixin } from '@/mixins/JeecgListMixin'
+import SysCategoryModal from './modules/SysCategoryModal'
+import sysCategoryBatchModal from './modules/SysCategoryBatchModal'
+import { axios } from '@/utils/request'
+import Utils from '@/utils/util2'
+
+export default {
+  name: 'SysCategoryList',
+  mixins: [JeecgListMixin],
+  components: {
+    SysCategoryModal,
+    sysCategoryBatchModal
+  },
+  data () {
+    return {
+      isHasChildMessage: '',
+      currentRecord: {},
+      confirmLoading: false,
+      deleteModalVisible: false,
+      description: '分类字典管理页面',
+      // 表头
+      columns: [
+        {
+          title: '分类名称',
+          align: 'left',
+          dataIndex: 'name'
         },
-        expandedRowKeys:[],
-        hasChildrenField:"hasChild",
-        pidField:"pid",
-        dictOptions:{
-        } 
-      }
-    },
-    computed: {
-      importExcelUrl(){
-        return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`;
+        {
+          title: '分类编码',
+          align: 'center',
+          dataIndex: 'code'
+        },
+        {
+          title: '排序',
+          align: 'center',
+          dataIndex: 'sortNo',
+          key: 'sortNo'
+        },
+        {
+          title: '操作',
+          dataIndex: 'action',
+          align: 'center',
+          scopedSlots: { customRender: 'action' }
+        }
+      ],
+      url: {
+        // 调整Controller接口
+        list: '/sys/category/rootList',
+        childList: '/sys/category/childList',
+        delete: '/sys/category/delete',
+        isHasChild: '/sys/category/isHasChild',
+        deleteBatch: '/sys/category/deleteBatch',
+        exportXlsUrl: '/sys/category/exportXls',
+        importExcelUrl: '/sys/category/importExcel'
       },
-      tableProps() {
-        let _this = this
-        return {
-          // 列表项是否可选择
-          rowSelection: {
-            selectedRowKeys: _this.selectedRowKeys,
-            onChange: (selectedRowKeys) => _this.selectedRowKeys = selectedRowKeys
-          }
+      expandedRowKeys: [],
+      selectedRowKeys: [],
+      hasChildrenField: 'hasChild',
+      pidField: 'pid',
+      dictOptions: {
+      },
+      subExpandedKeys: []
+    }
+  },
+  computed: {
+    importExcelUrl(){
+      return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`
+    },
+    tableProps() {
+      let _this = this
+      return {
+        // 列表项是否可选择
+        rowSelection: {
+          selectedRowKeys: _this.selectedRowKeys,
+          // eslint-disable-next-line no-return-assign
+          onChange: (selectedRowKeys) => _this.selectedRowKeys = selectedRowKeys
         }
       }
+    }
+  },
+  methods: {
+    getInitSortNo(id) {
+      Utils.$emit('sort2', id)
     },
-    methods: {
-      loadData(arg){
-        if(arg==1){
-          this.ipagination.current=1
+    getMaxSortNo(id) {
+      Utils.$emit('sort', id)
+    },
+    showDeleteConfirm(record) {
+      this.currentRecord = record
+      this.deleteModalVisible = true
+      this.checkIsHasChild()
+    },
+    checkIsHasChild() {
+      // alert("hhhh")
+      axios.get(this.url.isHasChild, {
+        params: {
+          id: this.currentRecord.id
         }
-        this.loading = true
-        this.expandedRowKeys = []
-        let params = this.getQueryParams()
-        return new Promise((resolve) => {
-          getAction(this.url.list,params).then(res=>{
-            if(res.success){
-              let result = res.result
-              if(Number(result.total)>0){
-                this.ipagination.total = Number(result.total)
-                this.dataSource = this.getDataByResult(res.result.records)
-                resolve()
-              }else{
-                this.ipagination.total=0
-                this.dataSource=[]
+      })
+        .then(resp => {
+          console.log('后台返回结果：' + resp.result)
+          this.isHasChildMessage = resp.result
+        }).catch(err => {
+          console.log('请求失败：' + err.message + ',' + err.code)
+        })
+    },
+    loadData(arg) {
+      if (arg === 1){
+        this.ipagination.current = 1
+      }
+      this.loading = true
+      this.expandedRowKeys = []
+      let params = this.getQueryParams()
+      return new Promise((resolve) => {
+        getAction(this.url.list, params).then(res => {
+          if (res.success){
+            let result = res.result
+            if (Number(result.total) > 0){
+              this.ipagination.total = Number(result.total)
+              this.dataSource = this.getDataByResult(res.result.records)
+              resolve()
+            } else {
+              this.ipagination.total = 0
+              this.dataSource = []
+            }
+          } else {
+            this.$message.warning(res.message)
+          }
+          this.loading = false
+        })
+      })
+    },
+    getDataByResult(result){
+      return result.map(item => {
+        // 判断是否标记了带有子节点
+        if (item[this.hasChildrenField] === '1'){
+          let loadChild = { id: item.id + '_loadChild', name: 'loading...', isLoading: true }
+          item.children = [loadChild]
+        }
+        return item
+      })
+    },
+    handleExpand(expanded, record){
+      // 判断是否是展开状态
+      if (expanded) {
+        this.expandedRowKeys.push(record.id)
+        if (record.children.length > 0 && record.children[0].isLoading === true) {
+          let params = this.getQueryParams()// 查询条件
+          params[this.pidField] = record.id
+          getAction(this.url.childList, params).then((res) => {
+            if (res.success){
+              if (res.result && res.result.length > 0){
+                record.children = this.getDataByResult(res.result)
+                this.dataSource = [...this.dataSource]
+              } else {
+                record.children = ''
+                record.hasChildrenField = '0'
               }
-            }else{
+            } else {
               this.$message.warning(res.message)
             }
-            this.loading = false
           })
-        })
-      },
-      getDataByResult(result){
-        return result.map(item=>{
-          //判断是否标记了带有子节点
-          if(item[this.hasChildrenField]=='1'){
-            let loadChild = { id: item.id+'_loadChild', name: 'loading...', isLoading: true }
-            item.children = [loadChild]
-          }
-          return item
-        })
-      },
-      handleExpand(expanded, record){
-        // 判断是否是展开状态
-        if (expanded) {
-          this.expandedRowKeys.push(record.id)
-          if (record.children.length>0 && record.children[0].isLoading === true) {
-            let params = this.getQueryParams();//查询条件
-            params[this.pidField] = record.id
-            getAction(this.url.childList,params).then((res)=>{
-              if(res.success){
-                if(res.result && res.result.length>0){
-                  record.children = this.getDataByResult(res.result)
-                  this.dataSource = [...this.dataSource]
-                }else{
-                  record.children=''
-                  record.hasChildrenField='0'
-                }
-              }else{
-                this.$message.warning(res.message)
-              }
-            })
-          }
-        }else{
-          let keyIndex = this.expandedRowKeys.indexOf(record.id)
-          if(keyIndex>=0){
-            this.expandedRowKeys.splice(keyIndex, 1);
-          }
         }
-      },
-      initDictConfig(){
-      },
-      modalFormOk(formData,arr){
-        if(!formData.id){
-          this.addOk(formData,arr)
-        }else{
-          this.editOk(formData,this.dataSource)
-          this.dataSource=[...this.dataSource]
+      } else {
+        let keyIndex = this.expandedRowKeys.indexOf(record.id)
+        if (keyIndex >= 0){
+          this.expandedRowKeys.splice(keyIndex, 1)
         }
-      },
-      editOk(formData,arr){
-        if(arr && arr.length>0){
-          for(let i=0;i<arr.length;i++){
-            if(arr[i].id==formData.id){
-              arr[i]=formData
-              break
-            }else{
-              this.editOk(formData,arr[i].children)
-            }
-          }
+      }
+    },
+    initDictConfig() {
+    },
+    modalFormOk(formData, arr){
+      if (!formData.id){
+        this.addOk(formData, arr)
+      } else {
+        this.editOk(formData, this.dataSource)
+        this.dataSource = [...this.dataSource]
+      }
+    },
+    editOk(formData, arr) {
+      if (formData.pid && formData.pid !== '0') {
+        this.subExpandedKeys = []
+        this.getExpandKeysByPid(formData.pid, this.dataSource, this.dataSource)
+        this.addOk(formData, this.subExpandedKeys.reverse())
+      } else {
+        this.loadData()
+      }
+    },
+    async addOk(formData, arr){
+      if (!formData[this.pidField]){
+        this.loadData()
+      } else {
+        this.expandedRowKeys = []
+        console.log('22222', arr)
+        for (let i of arr){
+          await this.expandTreeNode(i)
         }
-      },
-      async addOk(formData,arr){
-        if(!formData[this.pidField]){
-          this.loadData()
-        }else{
-          this.expandedRowKeys=[]
-          console.log("22222",arr)
-          for(let i of arr){
-            await this.expandTreeNode(i)
-          }
-        }
-      },
-      expandTreeNode(nodeId){
-        return new Promise((resolve,reject)=>{
-          this.getFormDataById(nodeId,this.dataSource)
-          let row = this.parentFormData
-          this.expandedRowKeys.push(nodeId)
-          let params = this.getQueryParams();//查询条件
-          params[this.pidField] = nodeId
-          getAction(this.url.childList,params).then((res)=>{
-            console.log("11111",res)
-            if(res.success){
-              if(res.result && res.result.length>0){
-                row.children = this.getDataByResult(res.result)
-                this.dataSource = [...this.dataSource]
-                resolve()
-              }else{
-                reject()
-              }
-            }else{
+      }
+    },
+    expandTreeNode(nodeId){
+      return new Promise((resolve, reject) => {
+        this.getFormDataById(nodeId, this.dataSource)
+        let row = this.parentFormData
+        this.expandedRowKeys.push(nodeId)
+        let params = this.getQueryParams()// 查询条件
+        params[this.pidField] = nodeId
+        getAction(this.url.childList, params).then((res) => {
+          console.log('11111', res)
+          if (res.success){
+            if (res.result && res.result.length > 0){
+              row.children = this.getDataByResult(res.result)
+              this.dataSource = [...this.dataSource]
+              resolve()
+            } else {
+              row.children = ''
+              row.hasChildrenField = '0'
               reject()
             }
-          })
+          } else {
+            reject()
+          }
         })
-      },
-      getFormDataById(id,arr){
-        if(arr && arr.length>0){
-          for(let i=0;i<arr.length;i++){
-            if(arr[i].id==id){
-              this.parentFormData = arr[i]
-            }else{
-              this.getFormDataById(id,arr[i].children)
-            }
+      })
+    },
+    getFormDataById(id, arr){
+      if (arr && arr.length > 0){
+        for (let i = 0; i < arr.length; i++){
+          if (arr[i].id === id){
+            this.parentFormData = arr[i]
+          } else {
+            this.getFormDataById(id, arr[i].children)
           }
         }
-      },
-      
-       
+      }
+    },
+    handleAdd: function () {
+      this.$refs.modalForm.add()
+      this.$refs.modalForm.title = '新增'
+      this.$refs.modalForm.disableSubmit = false
+      this.getInitSortNo()
+    },
+    handleAddSub(record) {
+      this.subExpandedKeys = []
+      this.getExpandKeysByPid(record.id, this.dataSource, this.dataSource)
+      this.$refs.modalForm.subExpandedKeys = this.subExpandedKeys
+      this.$refs.modalForm.title = '添加子分类'
+      this.$refs.modalForm.edit({ 'pid': record.id })
+      this.$refs.modalForm.disableSubmit = false
+      this.getMaxSortNo(record.id)
+    },
+    handleImportSub(record) {
+      this.subExpandedKeys = []
+      this.getExpandKeysByPid(record.id, this.dataSource, this.dataSource)
+      this.$refs.modalForm2.subExpandedKeys = this.subExpandedKeys
+      this.$refs.modalForm2.title = '批量导入分类字典'
+      this.$refs.modalForm2.edit({ 'pid': record.id })
+      this.$refs.modalForm2.disableSubmit = false
+    },
+    handleDelete: function () {
+      const record = this.currentRecord
+      let that = this
+      that.confirmLoading = true
+      deleteAction(that.url.delete, { id: record.id }).then((res) => {
+        if (res.success) {
+          if (record.pid && record.pid !== '0') {
+            let formData = { pid: record.pid }
+            that.$message.success(res.message)
+            that.subExpandedKeys = []
+            that.getExpandKeysByPid(record.pid, this.dataSource, this.dataSource)
+            that.addOk(formData, this.subExpandedKeys.reverse())
+          } else {
+            that.$message.success(res.message)
+            that.loadData()
+          }
+          that.confirmLoading = false
+          that.deleteModalVisible = false
+        } else {
+          that.$message.warning(res.message)
+          that.confirmLoading = false
+          that.deleteModalVisible = false
+        }
+      })
+    },
+    // 添加子分类时获取所有父级id
+    getExpandKeysByPid(pid, arr, all){
+      if (pid && arr && arr.length > 0){
+        for (let i = 0; i < arr.length; i++){
+          if (arr[i].id === pid){
+            this.subExpandedKeys.push(arr[i].id)
+            this.getExpandKeysByPid(arr[i]['pid'], all, all)
+          } else {
+            this.getExpandKeysByPid(pid, arr[i].children, all)
+          }
+        }
+      }
     }
   }
+}
 </script>
 <style scoped>
-  @import '~@assets/less/common.less'
 </style>
