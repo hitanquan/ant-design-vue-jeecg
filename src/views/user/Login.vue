@@ -231,6 +231,15 @@
       //this.getEncrypte();
       // update-end- --- author:scott ------ date:20190805 ---- for:密码加密逻辑暂时注释掉，有点问题
     },
+    mounted() {
+      // 本地开发模式下自动设置默认用户名密码
+      if (location.href.includes('localhost')) {
+        this.form.setFieldsValue({
+          username: 'admin',
+          password: '123456'
+        })
+      }
+    },
     methods: {
       ...mapActions([ "Login", "Logout","PhoneLogin" ]),
       // handler
