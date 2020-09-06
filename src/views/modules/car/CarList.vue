@@ -34,14 +34,21 @@
                 <a-col :md="16" :sm="24">
                   <a-form-item>
                     <a-input-group compact>
-                      <!--<j-dict-select-tag dict-code="type" style="width:40%" :triggerChange="true" @change="handleTableChange"  v-model="queryParam.type"/>-->
-                      <a-select style="width: 40%" :allowClear="true"  placeholder="请选择车型" @change="handleTableChange" v-model="queryParam.type">
+                      <j-dict-select-tag  
+                        placeholder="请选择车型" 
+                        dictCode="type" 
+                        style="width:40%" 
+                        :triggerChange="false"  
+                        @change="handleTableChange"  
+                        v-model="queryParam.type">
+                      </j-dict-select-tag>
+                      <!-- <a-select style="width: 40%" :allowClear="true"  placeholder="请选择车型" @change="handleTableChange" v-model="queryParam.type">
                         <a-icon slot="suffixIcon" type="caret-down" style="icon: auto"/>
                         <a-select-option value="1">轿车</a-select-option>
                         <a-select-option value="2">新能源</a-select-option>
                         <a-select-option value="3">SUV/MPV</a-select-option>
                         <a-select-option value="4">油电混合</a-select-option>
-                      </a-select>
+                      </a-select> -->
                       <a-input placeholder="请输入车名称" style="width:60%" v-model="queryParam.name"/>
                     </a-input-group>
                   </a-form-item>
@@ -189,6 +196,7 @@
   import {JeecgListMixin} from '@/mixins/JeecgListMixin';
   import CarModal from './modules/CarModal';
   import ImagPreview from "@/views/jeecg/ImagPreview";
+  import JDictSelectTag from '@/components/dict/JDictSelectTag'
   // 单列数据权限过滤器
   import {colAuthFilter} from "@/utils/authFilter";
   // 页面控件禁用依赖
@@ -204,6 +212,7 @@
       ACol,
       ARow,
       ImagPreview,
+      JDictSelectTag,
       STable,
       CarModal,
     },

@@ -46,13 +46,18 @@
 
           <a-col :span="12">
             <a-form-item :labelCol="{span: 4, offset: 2}" :wrapperCol="wrapperCol" label="类型">
-              <!-- <j-dict-select-tag :triggerChange="true" dict-code="type" v-decorator="[ 'type', validatorRules.type]"/> -->
-              <a-select placeholder="请选择车型" v-decorator="[ 'type', validatorRules.type]" default-value="0">
-                 <a-select-option value="轿车">轿车</a-select-option>
-                 <a-select-option value="新能源">新能源</a-select-option>
-                 <a-select-option value="SUV/MPV">SUV/MPV</a-select-option>
-                 <a-select-option value="油电混合">油电混合</a-select-option>
-               </a-select>
+              <j-dict-select-tag 
+                placeholder="请选择车型" 
+                :triggerChange="true" 
+                dictCode="type" 
+                v-decorator="[ 'type', validatorRules.type]">
+              </j-dict-select-tag>
+              <!-- <a-select placeholder="请选择车型" v-decorator="[ 'type', validatorRules.type]" default-value="0">
+                 <a-select-option value="1">轿车</a-select-option>
+                 <a-select-option value="2">新能源</a-select-option>
+                 <a-select-option value="3">SUV/MPV</a-select-option>
+                 <a-select-option value="4">油电混合</a-select-option>
+               </a-select> -->
             </a-form-item>
           </a-col>
         </a-row>
@@ -100,8 +105,9 @@
   import JDate from '@/components/jeecg/JDate'
   import JImageUpload from '@/components/jeecg/JImageUpload'
   import JTreeSelect from '@/components/jeecg/JTreeSelect'
-  import ARow from "ant-design-vue/es/grid/Row";
-  import ACol from "ant-design-vue/es/grid/Col";
+  import ARow from "ant-design-vue/es/grid/Row"
+  import JDictSelectTag from '@/components/dict/JDictSelectTag'
+  import ACol from "ant-design-vue/es/grid/Col"
 
   export default {
     name: "CarModal",
@@ -110,6 +116,7 @@
       ARow,
       JDate,
       JImageUpload,
+      JDictSelectTag,
       JTreeSelect
     },
     data() {
